@@ -53,12 +53,12 @@ run_allcombine2:
 	screen -S sje_latefusion_${DATASET}_$(EMB3)$(EMB4) -m -d make run_batch ATT1=$(EMB3) ATT2=$(EMB4)
 
 run_allcombine:
-	make run_batch ATT1=$(EMB1) ATT2=$(EMB2)
-#	screen -S sje_latefusion_${DATASET}_$(EMB1)$(EMB3) -m -d make run_batch ATT1=$(EMB1) ATT2=$(EMB3)
-#	screen -S sje_latefusion_${DATASET}_$(EMB1)$(EMB4) -m -d make run_batch ATT1=$(EMB1) ATT2=$(EMB4)
-#	screen -S sje_latefusion_${DATASET}_$(EMB2)$(EMB3) -m -d make run_batch ATT1=$(EMB2) ATT2=$(EMB3)
-#	screen -S sje_latefusion_${DATASET}_$(EMB2)$(EMB4) -m -d make run_batch ATT1=$(EMB2) ATT2=$(EMB4)
-#	screen -S sje_latefusion_${DATASET}_$(EMB3)$(EMB4) -m -d make run_batch ATT1=$(EMB3) ATT2=$(EMB4)
+	screen -S sje_latefusion_${DATASET}_$(EMB1)$(EMB3) -m -d make run_batch ATT1=$(EMB1) ATT2=$(EMB2)
+	screen -S sje_latefusion_${DATASET}_$(EMB1)$(EMB3) -m -d make run_batch ATT1=$(EMB1) ATT2=$(EMB3)
+	screen -S sje_latefusion_${DATASET}_$(EMB1)$(EMB4) -m -d make run_batch ATT1=$(EMB1) ATT2=$(EMB4)
+	screen -S sje_latefusion_${DATASET}_$(EMB2)$(EMB3) -m -d make run_batch ATT1=$(EMB2) ATT2=$(EMB3)
+	screen -S sje_latefusion_${DATASET}_$(EMB2)$(EMB4) -m -d make run_batch ATT1=$(EMB2) ATT2=$(EMB4)
+	screen -S sje_latefusion_${DATASET}_$(EMB3)$(EMB4) -m -d make run_batch ATT1=$(EMB3) ATT2=$(EMB4)
 
 run_batch:
 	make run_val FEAT=goog
