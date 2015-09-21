@@ -248,7 +248,7 @@ double SvmSgdSJE::test(double *score_mat1, double *score_mat2, const yvec_t &yp,
   	}
 		double acc = double(sum_diag_conf / nclass);
 
-  	cout << "alpha=" << alpha << "beta=" << beta << ", Per " << " class accuracy = " << setprecision(4) << 100 * double(sum_diag_conf / nclass) << "%." << endl;
+  	cout << "alpha=" << alpha << ", beta=" << beta << ", Per " << "class accuracy = " << setprecision(4) << 100 * double(sum_diag_conf / nclass) << "%." << endl;
 
 		return acc;
 }
@@ -402,7 +402,7 @@ int main(int argc, const char **argv)
 	mean = load_mean(meanfile, dims);
 	variance = load_variance(variancefile, dims);
 	max = load_max(maxfile);
-  	
+	cout << "max=" << endl; 	
 	normalization(xtest, dims, xtest_fvec.size(), mean, variance, false);	
 	normalization2(xtest, dims, xtest_fvec.size(), max, false);	
 
