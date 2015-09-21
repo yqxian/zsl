@@ -24,16 +24,16 @@ EPOCHS=15
 #			SJE ZERO_SHOT 					#
 #########################################################################
 CUB:
-	make run_dataset DATASET=CUB
 	-rm -rf $(PATH_ALL)/data/CUB/SJE_REGULARIZED
+	make run_dataset DATASET=CUB
 
 AWA:
-	make run_dataset DATASET=AWA
 	-rm -rf $(PATH_ALL)/data/AWA/SJE_REGULARIZED
+	make run_dataset DATASET=AWA
 
 Dogs:
-	make run_dataset DATASET=Dogs113	
 	-rm -rf $(PATH_ALL)/data/Dogs113/SJE_REGULARIZED
+	make run_dataset DATASET=Dogs113	
 
 #screen -S sje_${DATASET}_$${att} -m -d make sje_zsh ATT=$${att};
 run_all:
@@ -94,4 +94,4 @@ sje_test:
 	done;	
 	-rm $(TMP)/param_${ATT}.txt
 	less $(TMP)/sje_results_${ATT}.txt | sort -n | tail -1 > $(TMP)/param_${ATT}.txt
-	make sje_one_test LBD=`awk '{print $$2}' $(TMP)/param_${ATT}.txt` NITER=`awk '{print $$3}' $(TMP)/param_${ATT}.txt`
+	make sje_one_test LBD=`awk '{print $$3}' $(TMP)/param_${ATT}.txt` NITER=`awk '{print $$4}' $(TMP)/param_${ATT}.txt`
