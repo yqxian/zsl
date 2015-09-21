@@ -69,7 +69,7 @@ run_batch:
 	for eta in 1e-1 1e-3 1e-5; do \
 		make run_one_val NITER=$(EPOCHS) LBD=1e-5 FEAT=goog ETA=$${eta};\
 	done
-	make run_test
+	make run_test LBD=1e-5 FEAT=goog NITER=$(EPOCHS)
 	
 run_one_val: 
 	make $(TMP)/sje_combine_${LBD}_${ETA}_${NITER}_${FEAT}_${ATT1}${ATT2}_val.txt
@@ -101,10 +101,10 @@ $(TMP)/sje_combine_${LBD}_${ETA}_${NITER}_${FEAT}_${ATT1}${ATT2}_test.txt:
 #########################################################################
 
 run_test:
-	-rm $(TMP)/sje_combine_results_${ATT1}${ATT2}.txt
+	-rm $(TMP)/results_${ATT1}${ATT2}.txt
 	for eta in 1e-1 1e-3 1e-5; do \
-		echo `cat $(TMP)/sje_combine_${LBD}_${ETA}_${NITER}_${FEAT}_${ATT1}${ATT2}_val.txt | tail -1` >> $(TMP)/sje_combine_results_${ATT1}${ATT2}.txt; \
+		echo `cat $(TMP)/sje_combine_${LBD}_$${eta}_${NITER}_${FEAT}_${ATT1}${ATT2}_val.txt | tail -1` >> $(TMP)/results_${ATT1}${ATT2}.txt; \
 	done;
 	-rm $(TMP)/param_${ATT1}${ATT2}.txt 
-	less $(TMP)/sje_combine_results_${ATT1}${ATT2}.txt | sort -n | tail -1 > $(TMP)/param_${ATT1}${ATT2}.txt
+	less $(TMP)/results_${ATT1}${ATT2}.txt | sort -n | tail -1 > $(TMP)/param_${ATT1}${ATT2}.txt
 	make run_one_test ETA=`awk '{print $$2}' $(TMP)/param_${ATT1}${ATT2}.txt` NITER=`awk '{print $$3}' $(TMP)/param_${ATT1}${ATT2}.txt`
