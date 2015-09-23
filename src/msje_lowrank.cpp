@@ -99,7 +99,7 @@ public:
   ~SvmSgdSJE();
 public:
   void train(int imin, int imax, int itemax, double* xp, const yvec_t &yp, double *att_mat1, double *att_mat2, int nclass, const char *prefix = "");
-  void test(int imin, int imax, double* xp, const yvec_t &y,double *att_mat1, double *att_mat2, int nclass, const char *prefix = "");
+  double test(int imin, int imax, double* xp, const yvec_t &y,double *att_mat1, double *att_mat2, int nclass, const char *prefix = "");
 	void init_tensor();
 	void getA(double *x, double *A);
 	void getBC(double *att1, double *att2, int nclass, double *B, double *C);
@@ -107,6 +107,9 @@ public:
 	void getC(double *att2, int nclass, double *C);
 	int getOneLoss(double *x, double *A, double *B, double *C, int nclass, int label);
 	int getOnePredict(double *x, double *A, double *B, double *C, int nclass);
+	void copy_emb_tensor(double *tmp_x, double *tmp_y1, double *tmp_y2);
+	void save_model(const char *fname);
+	void load_model(const char *fname);
 private:
 	double *emb_tensor_x;
 	double *emb_tensor_y1;
@@ -120,7 +123,24 @@ private:
   int t;
 };
 
+void SvmSgdSJE::save_model(const char *fname){
 
+	save_emb_tensor_components(fname, rank, emb_dim1, emb_dim2, dims, emb_tensor_x, emb_tensor_y1, emb_tensor_y2);
+
+}
+
+void SvmSgdSJE::load_model(const char *fname){
+
+	load_emb_tensor_components(fname, rank, emb_dim1, emb_dim2, dims, emb_tensor_x, emb_tensor_y1, emb_tensor_y2);
+
+}
+
+void SvmSgdSJE::copy_emb_tensor(double *tmp_x, double *tmp_y1, double *tmp_y2){
+	memcpy(tmp_x, emb_tensor_x, sizeof(double)*rank*dims);
+	memcpy(tmp_y1, emb_tensor_y1, sizeof(double)*rank*emb_dim1);
+	memcpy(tmp_y2, emb_tensor_y2, sizeof(double)*rank*emb_dim2);
+
+}
 /// Constructor
 SvmSgdSJE::SvmSgdSJE(int _dims, int _emb_dim1,int _emb_dim2, int _rank, double _lambda, double _eta)
 {
@@ -340,7 +360,7 @@ void SvmSgdSJE::train(int imin, int imax, int itemax, double* xp, const yvec_t &
 	C = NULL;
 }
 
-void SvmSgdSJE::test(int imin, int imax,double* xp, const yvec_t &yp, double *att_mat1, double *att_mat2, int nclass, const char* prefix)
+double SvmSgdSJE::test(int imin, int imax,double* xp, const yvec_t &yp, double *att_mat1, double *att_mat2, int nclass, const char* prefix)
 {
 	cout << prefix << " Testing Multi-class for [" << imin << ", " << imax << "]." << endl;
  	assert(imin <= imax);
@@ -395,7 +415,7 @@ void SvmSgdSJE::test(int imin, int imax,double* xp, const yvec_t &yp, double *at
 	{
 		int true_class = int(yp.at(i)-1);
 
-		double max_score = -1e6;
+		double max_score = -1e12;
 		int predicted_class = -1;
 
 		for(int c = 0; c < nclass; c++)
@@ -439,6 +459,8 @@ void SvmSgdSJE::test(int imin, int imax,double* xp, const yvec_t &yp, double *at
 	}
 	cout << " Per " << prefix << " class accuracy = " << setprecision(4) << 100 * double(sum_diag_conf / nclass) << "%." << endl;
 	
+	double acc = double(sum_diag_conf / nclass);
+
 	delete[] A;
 	A = NULL;
 	delete[] B;
@@ -449,6 +471,8 @@ void SvmSgdSJE::test(int imin, int imax,double* xp, const yvec_t &yp, double *at
 	scores = NULL;
 	delete[] conf_mat;
 	conf_mat = NULL;
+
+	return acc;
 }
 
 
@@ -547,60 +571,6 @@ void config(const char *progname)
 }
 
 
-void normalization(double *xp, int dim, int nsamples, double *mean, double  *variance, bool istrain){
-  if(istrain){
-    for(int i = 0; i < dim; i++){
-      double square_sum = 0.0;
-      double sum = 0.0;
-      for(int j = 0; j < nsamples; j++){
-        sum += xp[j*dim+i];
-      }
-      mean[i] = (double)(sum/nsamples);
-      for(int j = 0; j < nsamples; j++){
-        xp[j*dim+i] -= mean[i];
-        square_sum += xp[j*dim+i]*xp[j*dim+i];
-      }
-      square_sum = square_sum / nsamples;
-      variance[i] = sqrt(square_sum);
-      for(int j = 0; j < nsamples; j++){
-        if(variance[i] != 0)
-          xp[j*dim+i] = xp[j*dim+i]/variance[i];
-      }
-    }
-  }
-  else{
-    for(int i = 0; i < dim; i++){
-      for(int j = 0; j < nsamples; j++){
-        xp[j*dim+i] -= mean[i];
-        if(variance[i] != 0)
-          xp[j*dim+i] = xp[j*dim+i]/variance[i];
-      }
-    }
-  }
-}
-
-void normalization2(double *xp, int dim, int nsamples, double &max, bool istrain){
-  if(istrain){
-    max = -1;
-    for(int i = 0; i < nsamples; i++)
-      for(int j = 0; j < dim; j++)
-        if(max < xp[i*dim + j])
-          max = xp[i*dim + j];
-    if(max != 0){
-      for(int i = 0; i < nsamples; i++)
-        for(int j = 0; j < dim; j++)
-          xp[i*dim + j] /= max;
-    }
-  }
-  else{
-		if(max != 0){
-      for(int i = 0; i < nsamples; i++)
-        for(int j = 0; j < dim; j++)
-          xp[i*dim + j] /= max;
-    }
-  }
-}
-
 // --- main function
 
 
@@ -655,7 +625,6 @@ int main(int argc, const char **argv)
 		att1_mat_test = load_attribute_matrix(att1_file_test, emb_dim1, nclass_test);
 	if (att2_file_test)
 		att2_mat_test = load_attribute_matrix(att2_file_test, emb_dim2, nclass_test);
-	cout << "# of test classes=" << nclass_test << endl;	
 	xvec_t xtest_fvec;
 	// Load test images and their labels 
 	if (testfile)
@@ -667,18 +636,34 @@ int main(int argc, const char **argv)
   normalization2(xtest, dims, xtest_fvec.size(), max, false);
 	int tmin = 0, tmax = xtest_fvec.size() - 1;
 	int imin = 0, imax = xtrain_fvec.size() - 1; 
-
 	int ite_per_epoch = xtrain_fvec.size();
+	
+  int best_nepoch = 0;
+  double best_accuracy = 0.0;
+  double cur_accuracy = 0.0;
+	double *best_emb_tensor_x = new double[rank*dims];
+	double *best_emb_tensor_y1 = new double[rank*emb_dim1];
+	double *best_emb_tensor_y2 = new double[rank*emb_dim2];
 	for(int i = 1; i <= epochs; i++){
 		// Training
 		cout << "Epoch " << i << "..." << endl;
 		sje.train(imin, imax, ite_per_epoch, xtrain, ytrain, att1_mat_train, att2_mat_train, nclass_train);
 		if(isval){
-			sje.test(tmin, tmax, xtest, ytest, att1_mat_test, att2_mat_test, nclass_test, "test");
+			cur_accuracy = sje.test(tmin, tmax, xtest, ytest, att1_mat_test, att2_mat_test, nclass_test, "test");
+			if(cur_accuracy > best_accuracy){
+        best_accuracy = cur_accuracy;
+        best_nepoch = i;
+				sje.copy_emb_tensor(best_emb_tensor_x, best_emb_tensor_y1, best_emb_tensor_y2);				
+      }
 		}
 	}
-	if(!isval)
-		sje.test(tmin, tmax, xtest, ytest, att1_mat_test, att2_mat_test, nclass_test, "t    est");
-	
+	if(isval){
+		save_emb_tensor_components(embfile,	rank, emb_dim1, emb_dim2, dims, best_emb_tensor_x, best_emb_tensor_y1, best_emb_tensor_y2);
+    cout << best_accuracy << " " << eta << " " << best_nepoch << " " << rank << endl;
+	}
+	else{
+		sje.save_model(embfile);
+		sje.test(tmin, tmax, xtest, ytest, att1_mat_test, att2_mat_test, nclass_test, "test");
+	}	
 	return 0;
 }

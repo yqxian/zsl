@@ -25,6 +25,7 @@
 
 
 L=lib
+BIN=../bin
 CXX=g++
 OPT=
 #OPTS=-g -O2
@@ -32,7 +33,7 @@ OPTS=-g
 CXXFLAGS= ${OPTS} ${OPT} -Wall -I$L
 LIBS = -lz -lm
 
-PROGRAMS = prep_data sje_stepdecay msje_lowrank sje_heuristicstep sje_tdecay
+PROGRAMS = ${BIN}/prep_data ${BIN}/msje_lowrank
 
 OBJS = vectors.o gzstream.o timer.o
 INCS = $L/vectors.h $L/gzstream.h $L/timer.h $L/wrapper.h $L/assert.h
@@ -58,29 +59,14 @@ data_mult.o: data_mult.cpp ${INCS}
 prep_data.o: prep_data.cpp ${INCS}
 	${CXX} ${CXXFLAGS} -c -o $@ prep_data.cpp
 
-sje_stepdecay.o: sje_stepdecay.cpp data_mult.h loss.h ${INCS}
-	${CXX} ${CXXFLAGS} -c -o $@ sje_stepdecay.cpp
 
 msje_lowrank.o: msje_lowrank.cpp data_mult.h loss.h ${INCS}
 	${CXX} ${CXXFLAGS} -c -o $@ msje_lowrank.cpp
 
-sje_heuristic.o: sje_heuristicstep.cpp data_mult.h loss.h ${INCS}
-	${CXX} ${CXXFLAGS} -c -o $@ sje_heuristic.cpp
 
-sje_tdecay.o: sje_tdecay.cpp data_mult.h loss.h ${INCS}
-	${CXX} ${CXXFLAGS} -c -o $@ sje_tdecay.cpp
-
-prep_data: prep_data.o ${OBJS}
+${BIN}/prep_data: prep_data.o ${OBJS}
 	${CXX} ${CXXFLAGS} -o $@ prep_data.o ${OBJS} ${LIBS}
 
-sje_stepdecay: sje_stepdecay.o data_mult.o ${OBJS}
-	${CXX} ${CXXFLAGS} -o $@ sje_stepdecay.o data_mult.o ${OBJS} ${LIBS}
 
-msje_lowrank: msje_lowrank.o data_mult.o ${OBJS}
+${BIN}/msje_lowrank: msje_lowrank.o data_mult.o ${OBJS}
 	${CXX} ${CXXFLAGS} -o $@ msje_lowrank.o data_mult.o ${OBJS} ${LIBS}
-
-sje_heuristicstep: sje_heuristicstep.o data_mult.o ${OBJS}
-	${CXX} ${CXXFLAGS} -o $@ sje_heuristicstep.o data_mult.o ${OBJS} ${LIBS}
-
-sje_tdecay: sje_tdecay.o data_mult.o ${OBJS}
-	${CXX} ${CXXFLAGS} -o $@ sje_tdecay.o data_mult.o ${OBJS} ${LIBS}

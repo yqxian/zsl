@@ -315,3 +315,95 @@ load_emb_tensor(const char *fname, int &emb_dim1, int &emb_dim2, int &dims, doub
 
   	delete[] emb_mat;
 }
+
+void normalization(double *xp, int dim, int nsamples, double *mean, double *variance,bool istrain){
+	if(istrain){
+  	for(int i = 0; i < dim; i++){
+    	double square_sum = 0.0;
+    	double sum = 0.0;
+    	for(int j = 0; j < nsamples; j++){
+      	sum += xp[j*dim+i];
+    	}
+    	mean[i] = (double)(sum/nsamples);
+    	for(int j = 0; j < nsamples; j++){
+      	xp[j*dim+i] -= mean[i];
+      	square_sum += xp[j*dim+i]*xp[j*dim+i];
+    	}
+    	square_sum = square_sum / nsamples;
+    	variance[i] = sqrt(square_sum);
+    	for(int j = 0; j < nsamples; j++){
+      	if(variance[i] != 0)
+        	xp[j*dim+i] = xp[j*dim+i]/variance[i];
+    	}
+  	}
+	}
+	else{
+  	for(int i = 0; i < dim; i++){
+    	for(int j = 0; j < nsamples; j++){
+      	xp[j*dim+i] -= mean[i];if(variance[i] != 0)
+        xp[j*dim+i] = xp[j*dim+i]/variance[i];
+    	}
+  	}
+	}
+}
+
+
+void normalization2(double *xp, int dim, int nsamples, double &max, bool istrain){
+	if(istrain){
+    max = -1;
+    for(int i = 0; i < nsamples; i++)
+      for(int j = 0; j < dim; j++)
+        if(max < xp[i*dim + j])
+          max = xp[i*dim + j];
+    if(max != 0){
+      for(int i = 0; i < nsamples; i++)
+        for(int j = 0; j < dim; j++)
+          xp[i*dim + j] /= max;
+    }
+  }
+  else{
+    if(max != 0){
+      for(int i = 0; i < nsamples; i++)
+        for(int j = 0; j < dim; j++)
+          xp[i*dim + j] /= max;
+    }
+  }
+}
+
+void load_emb_tensor_components(const char *fname, int &rank, int &emb_dim1, int &emb_dim2, int &dims, double *emb_tensor_x, double *emb_tensor_y1, double *emb_tensor_y2){
+
+	FILE *f = fopen(fname, "rb");
+	cout << "# Reading embedding tensor components to file " << fname << endl;
+
+	fread(&rank, sizeof(int), 1, f);
+
+	fread(&dims, sizeof(int), 1, f);
+	fread(emb_tensor_x, sizeof(double), rank*dims, f);
+
+	fread(&emb_dim1, sizeof(int), 1, f);
+	fread(emb_tensor_y1, sizeof(double), rank*emb_dim1, f);
+
+	fread(&emb_dim2, sizeof(int), 1, f);
+	fread(emb_tensor_y2, sizeof(double), rank*emb_dim2, f);
+
+	fclose(f);
+}
+
+void save_emb_tensor_components(const char *fname, int rank, int emb_dim1, int emb_dim2, int dims, double *emb_tensor_x, double *emb_tensor_y1, double *emb_tensor_y2){
+
+	FILE *f = fopen(fname, "wb");
+	cout << "# Writing embedding tensor components to file " << fname << endl;
+
+	fwrite(&rank, sizeof(int), 1, f);
+
+	fwrite(&dims, sizeof(int), 1, f);
+	fwrite(emb_tensor_x, sizeof(double), rank*dims, f);
+
+	fwrite(&emb_dim1, sizeof(int), 1, f);
+	fwrite(emb_tensor_y1, sizeof(double), rank*emb_dim1, f);
+
+	fwrite(&emb_dim2, sizeof(int), 1, f);
+	fwrite(emb_tensor_y2, sizeof(double), rank*emb_dim2, f);
+
+	fclose(f);
+}

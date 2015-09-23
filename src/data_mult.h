@@ -39,4 +39,12 @@ void save_emb_tensor(const char *fname, int &emb_dim1, int &emb_dim2, int &dims,
 double **array2D(int width, int height);
 double rand_gen();
 double* xvec_to_double(int nsample, int ndim, xvec_t xp);
+
+void normalization2(double *xp, int dim, int nsamples, double &max, bool istrain);
+void normalization(double *xp, int dim, int nsamples, double *mean, double  *variance, bool istrain);
+
+void load_emb_tensor_components(const char *fname, int &rank, int &emb_dim1, int &emb_dim2, int &dims, double *emb_tensor_x, double *emb_tensor_y1, double *emb_tensor_y2);
+
+void save_emb_tensor_components(const char *fname, int rank, int emb_dim1, int emb_dim2, int dims, double *emb_tensor_x, double *emb_tensor_y1, double *emb_tensor_y2);
+
 #endif
