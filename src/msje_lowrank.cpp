@@ -570,7 +570,6 @@ void config(const char *progname)
 		   << endl;
 }
 
-
 // --- main function
 
 
@@ -587,6 +586,7 @@ double* att2_mat_test;
 int dims;
 int emb_dim1, emb_dim2;
 int nclass_train, nclass_test;
+
 
 int main(int argc, const char **argv)
 {
@@ -644,6 +644,7 @@ int main(int argc, const char **argv)
 	double *best_emb_tensor_x = new double[rank*dims];
 	double *best_emb_tensor_y1 = new double[rank*emb_dim1];
 	double *best_emb_tensor_y2 = new double[rank*emb_dim2];
+	int noimprove_count = 0;
 	for(int i = 1; i <= epochs; i++){
 		// Training
 		cout << "Epoch " << i << "..." << endl;
@@ -654,7 +655,17 @@ int main(int argc, const char **argv)
         best_accuracy = cur_accuracy;
         best_nepoch = i;
 				sje.copy_emb_tensor(best_emb_tensor_x, best_emb_tensor_y1, best_emb_tensor_y2);				
+				noimprove_count = 0;	
       }
+			else{
+				noimprove_count++;
+				if(noimprove_count >= 4){
+					cout << "Stop since there is no improvement for last 4 epochs" << endl;
+					break;	
+				}
+			}
+			if(i==epochs && noimprove_count<4)
+				epochs = epochs*2;
 		}
 	}
 	if(isval){
